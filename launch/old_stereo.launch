@@ -1,0 +1,50 @@
+<launch>
+
+    <param name="my_robot_description" textfile="$(find stereofisheye_ros)/config/svs_tree.urdf"/>
+    <node name="tf_tree_pub" pkg="robot_state_publisher" type="robot_state_publisher" >
+        <remap from="robot_description" to="my_robot_description" />
+    </node>
+    
+    <node pkg="tf" type="static_transform_publisher" name="odom_broadcaster" args="1 0 0 0 0 0 1 map odom 100" />
+<!-- MAIN FISHEYE DEWARPING NODE -->
+    <node name="svs" pkg="stereofisheye_ros" type="stereofisheye_ros_node" respawn="true" output="screen" />
+<!-- FRONT -->
+    <remap from="left/image_raw"    to="left/image_raw" />
+    <remap from="right/image_raw"   to="right/image_raw" />
+    <remap from="left/camera_info"  to="left/camera_info" />
+    <remap from="right/camera_info" to="right/camera_info" />
+    <remap from="points2" to="front_pnts/points2" />
+    <node name="stereo_front" pkg="stereo_image_proc" type="stereo_image_proc" ns="svs/front_cam" />
+
+<!-- RIGHT -->
+    <remap from="left/image_raw"    to="left/image_raw" />
+    <remap from="right/image_raw"   to="right/image_raw" />
+    <remap from="left/camera_info"  to="left/camera_info" />
+    <remap from="right/camera_info" to="right/camera_info" />
+    <remap from="points2" to="right_pnts/points2" />
+    <node name="stereo_right" pkg="stereo_image_proc" type="stereo_image_proc" ns="svs/right_cam" />
+
+<!-- LEFT -->
+    <remap from="left/image_raw"    to="left/image_raw" />
+    <remap from="right/image_raw"   to="right/image_raw" />
+    <remap from="left/camera_info"  to="left/camera_info" />
+    <remap from="right/camera_info" to="right/camera_info" />
+    <remap from="points2" to="left_pnts/points2" />
+    <node name="stereo_left" pkg="stereo_image_proc" type="stereo_image_proc" ns="svs/left_cam" />
+
+<!-- BACK -->
+    <remap from="left/image_raw"    to="left/image_raw" />
+    <remap from="right/image_raw"   to="right/image_raw" />
+    <remap from="left/camera_info"  to="left/camera_info" />
+    <remap from="right/camera_info" to="right/camera_info" />
+    <remap from="points2" to="back_pnts/points2" />
+    <node name="stereo_back" pkg="stereo_image_proc" type="stereo_image_proc" ns="svs/back_cam" />        
+
+
+    <node name="octomap" pkg="octomap_server" type="octomap_server_node">
+        <param name="frame_id" value="base_link"/>
+        <param name="resolution" value=".4"/>
+        <remap from="cloud_in" to="/svs/front_cam/front_pnts/points2" />
+    </node>    
+
+</launch>
