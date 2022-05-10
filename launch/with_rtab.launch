@@ -17,7 +17,7 @@
    <!-- Choose visualization -->
    <arg name="rviz" default="true" />
    <arg name="rtabmapviz" default="false" />
-   <arg name="local_bundle" default="true" />
+   <arg name="local_bundle" default="false" />
    <arg name="stereo_sync" default="true" />
     
    <param name="use_sim_time" type="bool" value="True"/>
@@ -37,42 +37,95 @@
          <param name="disparity_range" value="128"/>
       </node>
    </group> -->
-      
-    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync1" args="standalone rtabmap_ros/stereo_sync">
-      <remap from="left/image_rect"   to="svs/front_cam/left/image_rect_color"/>
-      <remap from="right/image_rect"   to="svs/front_cam/right/image_rect"/>
-      <remap from="left/camera_info"   to="svs/front_cam/left/camera_info"/>
-      <remap from="right/camera_info"   to="svs/front_cam/right/camera_info"/>
-      <remap from="rgbd_image"   to="/stereo_camera1/rgbd_image"/>
+    
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="rgbd_gen0" args="standalone rtabmap_ros/pointcloud_to_depthimage">
+        <remap from="camera_info"   to="svs/front_cam/left/camera_info"/>
+        <remap from="cloud"         to="svs/front_cam/front_pnts/points"/>
+        <remap from="image"         to="depth0" />
+        <param name="approx" value="false"/>
     </node>
 
-        <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync2" args="standalone rtabmap_ros/stereo_sync">
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="rgbd_gen1" args="standalone rtabmap_ros/pointcloud_to_depthimage">
+        <remap from="camera_info"   to="svs/right_cam/left/camera_info"/>
+        <remap from="cloud"         to="svs/right_cam/right_pnts/points"/>
+        <remap from="image"         to="depth1" />
+        <param name="approx" value="false"/>
+    </node>
+
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="rgbd_gen2" args="standalone rtabmap_ros/pointcloud_to_depthimage">
+        <remap from="camera_info"   to="svs/left_cam/left/camera_info"/>
+        <remap from="cloud"         to="svs/left_cam/left_pnts/points"/>
+        <remap from="image"         to="stereo_camera2/rgbd_image" />
+        <param name="approx" value="false"/>
+    </node>
+
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="rgbd_gen3" args="standalone rtabmap_ros/pointcloud_to_depthimage">
+        <remap from="camera_info"   to="svs/back_cam/left/camera_info"/>
+        <remap from="cloud"         to="svs/back_cam/back_pnts/points"/>
+        <remap from="image"         to="stereo_camera3/rgbd_image" />
+        <param name="approx" value="false"/>
+    </node>    
+
+<!-- Assemble color and depth into RGBD image -->
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync0" args="standalone rtabmap_ros/stereo_sync">
+      <remap from="left/image_rect"   to="svs/front_cam/left/image_rect_color"/>
+      <remap from="right/image_rect"   to="depth0"/>
+      <remap from="left/camera_info"   to="svs/front_cam/left/camera_info"/>
+      <remap from="right/camera_info"   to="svs/front_cam/right/camera_info"/>
+      <remap from="rgbd_image"          to="stereo_camera0/rgbd_image"/>
+    </node>
+
+        <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync1" args="standalone rtabmap_ros/stereo_sync">
+      <remap from="left/image_rect"   to="svs/right_cam/left/image_rect_color"/>
+      <remap from="right/image_rect"   to="depth1"/>
+      <remap from="left/camera_info"   to="svs/right_cam/left/camera_info"/>
+      <remap from="right/camera_info"   to="svs/right_cam/right/camera_info"/>
+      <remap from="rgbd_image"          to="stereo_camera1/rgbd_image"/>
+    </node>
+<!-- 
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync2" args="standalone rtabmap_ros/stereo_sync">
       <remap from="left/image_rect"    to="svs/right_cam/left/image_rect_color"/>
       <remap from="right/image_rect"   to="svs/right_cam/right/image_rect"/>
       <remap from="left/camera_info"   to="svs/right_cam/left/camera_info"/>
       <remap from="right/camera_info"  to="svs/right_cam/right/camera_info"/>
       <remap from="rgbd_image"   to="/stereo_camera2/rgbd_image"/>
     </node>
+
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync3" args="standalone rtabmap_ros/stereo_sync">
+      <remap from="left/image_rect"    to="svs/left_cam/left/image_rect_color"/>
+      <remap from="right/image_rect"   to="svs/left_cam/right/image_rect"/>
+      <remap from="left/camera_info"   to="svs/left_cam/left/camera_info"/>
+      <remap from="right/camera_info"  to="svs/left_cam/right/camera_info"/>
+      <remap from="rgbd_image"   to="/stereo_camera3/rgbd_image"/>
+    </node>
+
+    <node if="$(arg stereo_sync)" pkg="nodelet" type="nodelet" name="stereo_sync4" args="standalone rtabmap_ros/stereo_sync">
+      <remap from="left/image_rect"    to="svs/back_cam/left/image_rect_color"/>
+      <remap from="right/image_rect"   to="svs/back_cam/right/image_rect"/>
+      <remap from="left/camera_info"   to="svs/back_cam/left/camera_info"/>
+      <remap from="right/camera_info"  to="svs/back_cam/right/camera_info"/>
+      <remap from="rgbd_image"   to="/stereo_camera4/rgbd_image"/>
+    </node> -->
               
    <!-- <group ns="rtabmap">    -->
    
       <!-- Stereo Odometry -->   
       <node pkg="rtabmap_ros" type="stereo_odometry" name="stereo_odometry" output="screen">
-         <param name="subscribe_rgbd"  type="bool" value="$(arg stereo_sync)"/>
-         
+         <param name="subscribe_rgbd"  type="bool" value="false"/> 
+         <!-- <param name="subscribe_rgbd"  type="bool" value="$(arg stereo_sync)"/>  -->
          <remap from="left/image_rect"       to="svs/front_cam/left/image_rect"/>
          <remap from="right/image_rect"      to="svs/front_cam/right/image_rect"/>
          <remap from="left/camera_info"      to="svs/front_cam/left/camera_info"/>
          <remap from="right/camera_info"     to="svs/front_cam/right/camera_info"/>
 
-         <remap from="rgbd_image"            to="/stereo_camera/rgbd_image"/>
+         <remap from="rgbd_image"            to="/stereo_camera1/rgbd_image"/>
          <remap from="odom"                  to="/stereo_odometry"/>
 
          <param name="frame_id"        type="string" value="base_link"/>
          <param name="odom_frame_id"   type="string" value="odom"/>
 
          <param name="Odom/Strategy"      type="string" value="0"/> <!-- 0=Frame-to-Map, 1=Frame=to=Frame -->
-         <param name="Vis/EstimationType" type="string" value="0"/> <!-- 0=3D->3D 1=3D->2D (PnP)  ZERO FOR MULTICAM -->
+         <param name="Vis/EstimationType" type="string" value="1"/> <!-- 0=3D->3D 1=3D->2D (PnP)  ZERO FOR MULTICAM -->
          <param name="Vis/MaxDepth"       type="string" value="0"/>
          <param name="Odom/GuessMotion" type="string" value="true"/>
          <param name="Vis/MinInliers"     type="string" value="10"/>
@@ -91,15 +144,19 @@
          <param name="subscribe_rgbd"      type="bool" value="$(arg stereo_sync)"/>
 
          <param name="rgbd_cameras" type="int" value="2" />
-
+<!-- 
          <remap from="left/image_rect"   to="svs/front_cam/left/image_rect_color"/>
          <remap from="right/image_rect"  to="svs/front_cam/right/image_rect"/>
          <remap from="left/camera_info"  to="svs/front_cam/left/camera_info"/>
-         <remap from="right/camera_info" to="svs/front_cam/right/camera_info"/>
+         <remap from="right/camera_info" to="svs/front_cam/right/camera_info"/> -->
 
-         <remap from="rgbd_image0"       to="/stereo_camera1/rgbd_image"/>
-         <remap from="rgbd_image1"       to="/stereo_camera2/rgbd_image"/>
-         <remap from="rgbd_image"        to="/stereo_camera/rgbd_image"/>
+         <remap from="rgbd_image0"       to="/stereo_camera0/rgbd_image"/>
+         <remap from="rgbd_image1"       to="/stereo_camera1/rgbd_image"/>
+         <!-- <remap from="rgbd_image2"       to="/stereo_camera2/rgbd_image"/>
+         <remap from="rgbd_image3"       to="/stereo_camera3/rgbd_image"/> -->
+         <!-- <remap from="rgbd_image"        to="/stereo_camera/rgbd_image"/> -->
+         <remap from="rgb/image"       to="svs/front_cam/left/image_raw"/>
+         <remap from="rgb/camera_info" to="svs/front_cam/left/camera_info"/>
 
          <remap from="odom" to="/stereo_odometry"/>
 
@@ -112,7 +169,7 @@
          <param name="Grid/FlatObstacleDetected"         type="string" value="true"/>
          <param name="Kp/MaxDepth"                       type="string" value="0"/>
          <param name="Kp/DetectorStrategy"               type="string" value="6"/>  
-         <param name="Vis/EstimationType"                type="string" value="1"/>   <!-- 0=3D->3D, 1=3D->2D (PnP) -->
+         <param name="Vis/EstimationType"                type="string" value="0"/>   <!-- 0=3D->3D, 1=3D->2D (PnP) -->
          <param name="Vis/MaxDepth"                      type="string" value="0"/>
          <param name="RGBD/CreateOccupancyGrid"          type="string" value="true"/>       
       </node>
@@ -125,11 +182,17 @@
          <param name="queue_size"          type="int" value="10"/>
          <param name="frame_id"            type="string" value="base_link"/>
          
+         <param name="rgbd_cameras" type="int" value="2" />
          <remap from="left/image_rect"   to="svs/front_cam/left/image_rect_color"/>
          <remap from="right/image_rect"  to="svs/front_cam/right/image_rect"/>
          <remap from="left/camera_info"  to="svs/front_cam/left/camera_info_throttle"/>
          <remap from="right/camera_info" to="svs/front_cam/right/camera_info_throttle"/>
-         <remap from="rgbd_image"        to="/stereo_camera/rgbd_image"/>
+
+         <remap from="rgbd_image0"       to="/stereo_camera0/rgbd_image"/>
+         <remap from="rgbd_image1"       to="/stereo_camera1/rgbd_image"/>
+         <!-- <remap from="rgbd_image2"       to="/stereo_camera2/rgbd_image"/>
+         <remap from="rgbd_image3"       to="/stereo_camera3/rgbd_image"/> -->
+
          <remap from="odom_info"         to="odom_info"/>
          <remap from="odom"              to="/stereo_odometry"/>
          <remap from="mapData"           to="mapData"/>
@@ -138,6 +201,6 @@
    <!-- </group> -->
   
    <!-- Visualisation RVIZ --> 
-   <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find rtabmap_ros)/launch/config/demo_stereo_outdoor.rviz"/>
+   <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find stereofisheye_ros)/config/svs_rtab.rviz"/>
 
 </launch>

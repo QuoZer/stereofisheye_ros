@@ -2,8 +2,8 @@
 
     <arg name="front_view" default="true" />
     <arg name="right_view" default="true" />
-    <arg name="left_view" default="false" />
-    <arg name="back_view" default="false" />
+    <arg name="left_view" default="true" />
+    <arg name="back_view" default="true" />
     <arg name="with_octo" default="false" />
 
     <rosparam param="disable_pub_plugins">
