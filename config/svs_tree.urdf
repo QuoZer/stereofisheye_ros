@@ -22,7 +22,7 @@
     <link name="fl_fy" >
         <visual>
         <geometry>
-            <box size="0.02 0.01 0.01"/>
+            <sphere radius="0.01"/>
         </geometry>
         <material name="white"/>
         </visual>
@@ -30,7 +30,7 @@
     <link name="fr_fy" >
         <visual>
         <geometry>
-            <box size="0.02 0.01 0.01"/>
+            <sphere radius="0.01"/>
         </geometry>
         <material name="white"/>
         </visual>
@@ -38,7 +38,7 @@
     <link name="bl_fy" >
         <visual>
         <geometry>
-            <box size="0.02 0.01 0.01"/>
+            <sphere radius="0.01"/>
         </geometry>
         <material name="white"/>
         </visual>
@@ -46,7 +46,7 @@
     <link name="br_fy" >
         <visual>
         <geometry>
-            <box size="0.02 0.01 0.01"/>
+            <sphere radius="0.01"/>
         </geometry>
             <material name="white"/>
         </visual>

@@ -48,8 +48,21 @@ void fillCamInfos(sensor_msgs::CameraInfo &lcam_info, sensor_msgs::CameraInfo &r
 
 int main(int argc, char **argv)
 {
+  bool use_video_, use_quadrator_;
+  std::string source_topic_, source_file_;
+  int source_width_, shot_width_, res_width_, source_fps_;
+
   ros::init(argc, argv, "svs");
   ros::NodeHandle nh;
+
+  nh.param("use_videofile", use_video_, "false");
+  nh.param("use_quadrator", use_quadrator_, "false")
+  nh.param("source_file", source_file_, "./video.mp4");
+  nh.param("source_topic", source_topic_, "/camera/image_raw");
+  nh.param("source_fps", source_fps_, 30);
+  nh.param("source_width", source_width_, 2160);
+  nh.param("shot_width", shot_width_, 1080);
+  nh.param("result_width", res_width_, 540);
 
   image_transport::ImageTransport it(nh);
 
@@ -57,15 +70,16 @@ int main(int argc, char **argv)
                                                  it.advertise("svs/right_cam/left/image_raw", 1), it.advertise("svs/right_cam/right/image_raw", 1), 
                                                  it.advertise("svs/left_cam/left/image_raw", 1),  it.advertise("svs/left_cam/right/image_raw", 1),
                                                  it.advertise("svs/back_cam/left/image_raw", 1),  it.advertise("svs/back_cam/right/image_raw", 1)};
- std::vector<ros::Publisher> infos = {nh.advertise<sensor_msgs::CameraInfo>("svs/front_cam/left/camera_info", 1), nh.advertise<sensor_msgs::CameraInfo>("svs/front_cam/right/camera_info", 1),
-                                     nh.advertise<sensor_msgs::CameraInfo>("svs/right_cam/left/camera_info", 1),  nh.advertise<sensor_msgs::CameraInfo>("svs/right_cam/right/camera_info", 1), 
-                                     nh.advertise<sensor_msgs::CameraInfo>("svs/left_cam/left/camera_info", 1),   nh.advertise<sensor_msgs::CameraInfo>("svs/left_cam/right/camera_info", 1),
-                                     nh.advertise<sensor_msgs::CameraInfo>("svs/back_cam/left/camera_info", 1),   nh.advertise<sensor_msgs::CameraInfo>("svs/back_cam/right/camera_info", 1)};
-
+  std::vector<ros::Publisher> infos = {nh.advertise<sensor_msgs::CameraInfo>("svs/front_cam/left/camera_info", 1), nh.advertise<sensor_msgs::CameraInfo>("svs/front_cam/right/camera_info", 1),
+                                       nh.advertise<sensor_msgs::CameraInfo>("svs/left_cam/left/camera_info", 1),  nh.advertise<sensor_msgs::CameraInfo>("svs/left_cam/right/camera_info", 1),
+                                       nh.advertise<sensor_msgs::CameraInfo>("svs/right_cam/left/camera_info", 1), nh.advertise<sensor_msgs::CameraInfo>("svs/right_cam/right/camera_info", 1), 
+                                       nh.advertise<sensor_msgs::CameraInfo>("svs/back_cam/left/camera_info", 1),  nh.advertise<sensor_msgs::CameraInfo>("svs/back_cam/right/camera_info", 1)};
   std::map<int, std::vector<std::string>> sp_frames = { {0, {"fl_r_ph", "fr_l_ph"}}, 
                                                         {1, {"fr_r_ph", "br_l_ph"}},
                                                         {2, {"bl_r_ph", "fl_l_ph"}},
-                                                        {3, {"br_r_ph", "bl_l_ph"}} };
+                                                        {3, {"br_r_ph", "bl_l_ph"}}  };
+  // TODO: create dinamically from yaml
+  std::vector<image_transport::Subscriber> fisheye_subs;     
 
   ros::Rate loop_rate(10);
   cv::VideoCapture cap; 
