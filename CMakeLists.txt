@@ -10,6 +10,8 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  tf2 
+  tf2_ros
   std_msgs
   sensor_msgs
   cv_bridge
@@ -173,7 +175,7 @@ target_link_libraries( svs ${OpenCV_LIBS})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/sfyNode.cpp)
-
+add_executable(odo_repub_node src/odometry_repub.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -183,11 +185,14 @@ add_executable(${PROJECT_NAME}_node src/sfyNode.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(odo_repub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   svs
+)
+target_link_libraries(odo_repub_node
+  ${catkin_LIBRARIES}
 )
 
 #############

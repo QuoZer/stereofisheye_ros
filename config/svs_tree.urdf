@@ -18,6 +18,15 @@
 
     <link name="base_link">
     </link>
+
+    <link name="cam_link">
+    </link>
+
+    <joint name ="cam_to_base" type="fixed">
+        <parent link="base_link" />
+        <child link="cam_link"/>
+        <origin xyz="0 0 0" rpy="0.0 0.0 1.57"/>
+    </joint>
 <!-- fisheye cameras -->
     <link name="fl_fy" >
         <visual>
@@ -51,24 +60,23 @@
             <material name="white"/>
         </visual>
     </link>
-<!-- fisheye joints -->
     <joint name ="base_to_fl" type="fixed">
-        <parent link="base_link" />
+        <parent link="cam_link" />
         <child link="fl_fy"/>
         <origin xyz="-0.1 0.1 0.0" rpy="-1.57 0 0.785"/>
     </joint>
     <joint name ="base_to_fr" type="fixed">
-        <parent link="base_link" />
+        <parent link="cam_link" />
         <child link="fr_fy"/>
         <origin xyz="0.1 0.1 0.0" rpy="-1.57 0 -0.785"/>
     </joint>
     <joint name ="base_to_bl" type="fixed">
-        <parent link="base_link" />
+        <parent link="cam_link" />
         <child link="bl_fy"/>
         <origin xyz="-0.1 -0.1 0.0" rpy="-1.57 0 -3.925"/>
     </joint>
     <joint name ="base_to_br" type="fixed">
-        <parent link="base_link" />
+        <parent link="cam_link" />
         <child link="br_fy"/>
         <origin xyz="0.1 -0.1 0.0" rpy="-1.57 0 3.925"/>
     </joint>
@@ -145,44 +153,44 @@
     <joint name ="fl_to_l_ph" type="fixed">
         <parent link="fl_fy" />
         <child link="fl_l_ph"/>
-        <origin xyz="0 0 0" rpy="0 0.785 0 "/>
+        <origin xyz="0 0 0" rpy="0 -0.785 0 "/>
     </joint>
     <joint name ="fl_to_r_ph" type="fixed">
         <parent link="fl_fy" />
         <child link="fl_r_ph"/>
-        <origin xyz="0 0 0" rpy="0 -0.785 0 "/>
+        <origin xyz="0 0 0" rpy="0 0.785 0 "/>
     </joint>
 
     <joint name ="fr_to_l_ph" type="fixed">
         <parent link="fr_fy" />
         <child link="fr_l_ph"/>
-        <origin xyz="0 0 0" rpy="0 0.785 0"/>
+        <origin xyz="0 0 0" rpy="0 -0.785 0"/>
     </joint>
     <joint name ="fr_to_r_ph" type="fixed">
         <parent link="fr_fy" />
         <child link="fr_r_ph"/>
-        <origin xyz="0 0 0" rpy="0 -0.785 0"/>
+        <origin xyz="0 0 0" rpy="0 0.785 0"/>
     </joint>
 
     <joint name ="br_to_l_ph" type="fixed">
         <parent link="br_fy" />
         <child link="br_l_ph"/>
-        <origin xyz="0 0 0" rpy="0 0.785 0"/>
+        <origin xyz="0 0 0" rpy="0 -0.785 0"/>
     </joint>
     <joint name ="br_to_r_ph" type="fixed">
         <parent link="br_fy" />
         <child link="br_r_ph"/>
-        <origin xyz="0 0 0" rpy="0 -0.785 0"/>
+        <origin xyz="0 0 0" rpy="0 0.785 0"/>
     </joint>
     <joint name ="bl_to_l_ph" type="fixed">
         <parent link="bl_fy" />
         <child link="bl_l_ph"/>
-        <origin xyz="0 0 0" rpy="0 0.785 0"/>
+        <origin xyz="0 0 0" rpy="0 -0.785 0"/>
     </joint>
     <joint name ="bl_to_r_ph" type="fixed">
         <parent link="bl_fy" />
         <child link="bl_r_ph"/>
-        <origin xyz="0 0 0" rpy="0 -0.785 0"/>
+        <origin xyz="0 0 0" rpy="0 0.785 0"/>
     </joint>        
 
 </robot>
