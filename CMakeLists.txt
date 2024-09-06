@@ -28,8 +28,8 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
   ${SVS_PATH}/include
   )
-  # ${SVS_PATH}/src
 
+  # ${SVS_PATH}/src
 # )
 set(DEWARPER_SRCS
 	${SVS_PATH}/src/FisheyeDewarper.cpp
@@ -44,11 +44,11 @@ set(DEWARPER_SRCS
 	${SVS_PATH}/src/models/Mei.cpp
 	${SVS_PATH}/src/models/KannalaB.cpp
 	${SVS_PATH}/src/models/DoubleSphere.cpp
-  ${SVS_PATH}/include/CamDesc.hpp
+  	${SVS_PATH}/include/CamDesc.hpp
 	${SVS_PATH}/include/CameraModel.hpp
 	${SVS_PATH}/include/FisheyeDewarper.hpp
 	${SVS_PATH}/include/models.hpp
-  ${SVS_PATH}/include/Intrinsics.hpp
+  	${SVS_PATH}/include/Intrinsics.hpp
 	${SVS_PATH}/include/SurroundSystem.hpp
 	${SVS_PATH}/include/StereoPair.hpp
 	${SVS_PATH}/include/Utils.hpp
@@ -58,18 +58,18 @@ add_library(svs SHARED ${DEWARPER_SRCS})
 target_link_libraries( svs ${OpenCV_LIBS})  
 
 add_executable(${PROJECT_NAME}_node src/sfyNode.cpp)
-add_executable(odo_repub_node src/odometry_repub.cpp)
+# add_executable(odo_repub_node src/odometry_repub.cpp)
 
-ament_target_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-ament_target_dependencies(odo_repub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ament_target_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} rclcpp)
+# ament_target_dependencies(odo_repub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   svs
 )
-target_link_libraries(odo_repub_node
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(odo_repub_node
+#   ${catkin_LIBRARIES}
+# )
 
 
 
