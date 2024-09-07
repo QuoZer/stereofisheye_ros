@@ -19,20 +19,20 @@
 class SFyNode : public rclcpp::Node
 {
 public:
-  SurroundSystem SS; 
+  SurroundSystem SS("SVS"); 
   std::vector<image_transport::Publisher> pubs;
-  std::vector<rclcpp::Publisher> infos;
+  std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> infos;
   std::map<int, std::vector<std::string>> sp_frames ;
-  ros::Subscriber quad_sub;
+  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr quad_sub;
 
   double ff = 270;
-  double K[] = {ff, 0, 450/2,
+  double K[9] = {ff, 0, 450/2,
                 0, ff, 450/2,
                 0, 0, 1.0    };
-  double Pl[]= {ff, 0, 450/2, 0,
+  double Pl[12]= {ff, 0, 450/2, 0,
                 0, ff, 450/2, 0,
                 0, 0, 1,     0};                    
-  double Pr[]= {ff, 0, 450/2, -ff*0.2,
+  double Pr[12]= {ff, 0, 450/2, -ff*0.2,
                 0, ff, 450/2, 0,
                 0, 0, 1,     0}; 
                 
@@ -41,24 +41,6 @@ public:
   {
     RCLCPP_INFO(get_logger(), "Node started!");
 
-
-    image_transport::ImageTransport it(this);
-
-    this->pubs = {it.advertise("svs/front_cam/left/image_raw", 2), it.advertise("svs/front_cam/right/image_raw", 1),
-                  it.advertise("svs/right_cam/left/image_raw", 1), it.advertise("svs/right_cam/right/image_raw", 1), 
-                  it.advertise("svs/left_cam/left/image_raw", 1),  it.advertise("svs/left_cam/right/image_raw", 1),
-                  it.advertise("svs/back_cam/left/image_raw", 1),  it.advertise("svs/back_cam/right/image_raw", 1)};
-    this->infos = {nh.advertise<sensor_msgs::msg::CameraInfo>("svs/front_cam/left/camera_info", 2), nh.advertise<sensor_msgs::msg::CameraInfo>("svs/front_cam/right/camera_info", 1),
-                  nh.advertise<sensor_msgs::msg::CameraInfo>("svs/right_cam/left/camera_info", 1), nh.advertise<sensor_msgs::msg::CameraInfo>("svs/right_cam/right/camera_info", 1), 
-                  nh.advertise<sensor_msgs::msg::CameraInfo>("svs/left_cam/left/camera_info", 1),  nh.advertise<sensor_msgs::msg::CameraInfo>("svs/left_cam/right/camera_info", 1),
-                  nh.advertise<sensor_msgs::msg::CameraInfo>("svs/back_cam/left/camera_info", 1),  nh.advertise<sensor_msgs::msg::CameraInfo>("svs/back_cam/right/camera_info", 1)};
-    this->sp_frames = { {0, {"fl_r_ph", "fr_l_ph"}}, 
-                  {1, {"fr_r_ph", "br_l_ph"}},
-                  {2, {"bl_r_ph", "fl_l_ph"}},
-                  {3, {"br_r_ph", "bl_l_ph"}}  };
-                   
-    quad_sub = create_subscription<sensor_msgs::msg::Image>(
-         "/unity/quadrator", rclcpp::SensorDataQoS(), std::bind(&SFyNode::unityCallback, this, _1));
   }
 
 private:
@@ -67,11 +49,30 @@ private:
   bool use_video_, use_quadrator_;
   int source_width_, shot_width_, res_width_, source_fps_, count;
   cv::Mat buf_image;  
-  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr quad_sub;
 
   int init_system()
   {
-    this->SS = new SurroundSystem;
+
+    image_transport::ImageTransport it(this->shared_from_this());   // to get a pointer to the node itself the function needs to be called from outside the constructor 
+
+    this->pubs = {it.advertise("svs/front_cam/left/image_raw", 2), it.advertise("svs/front_cam/right/image_raw", 1),
+                  it.advertise("svs/right_cam/left/image_raw", 1), it.advertise("svs/right_cam/right/image_raw", 1), 
+                  it.advertise("svs/left_cam/left/image_raw", 1),  it.advertise("svs/left_cam/right/image_raw", 1),
+                  it.advertise("svs/back_cam/left/image_raw", 1),  it.advertise("svs/back_cam/right/image_raw", 1)};
+
+    this->infos = {this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/front_cam/left/camera_info", rclcpp::SensorDataQoS()), this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/front_cam/right/camera_info", rclcpp::SensorDataQoS()),
+                   this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/right_cam/left/camera_info", rclcpp::SensorDataQoS()), this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/right_cam/right/camera_info", rclcpp::SensorDataQoS()),
+                   this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/left_cam/left/camera_info",  rclcpp::SensorDataQoS()), this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/left_cam/right/camera_info", rclcpp::SensorDataQoS()),
+                   this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/back_cam/left/camera_info",  rclcpp::SensorDataQoS()), this->create_publisher<sensor_msgs::msg::CameraInfo>("svs/back_cam/right/camera_info", rclcpp::SensorDataQoS())};
+    
+    this->sp_frames = { {0, {"fl_r_ph", "fr_l_ph"}}, 
+                        {1, {"fr_r_ph", "br_l_ph"}},
+                        {2, {"bl_r_ph", "fl_l_ph"}},
+                        {3, {"br_r_ph", "bl_l_ph"}}  };
+                   
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr quad_sub = create_subscription<sensor_msgs::msg::Image>(
+         "/unity/quadrator", rclcpp::SensorDataQoS(), std::bind(&SFyNode::unityCallback, this, std::placeholders::_1));
+    // this->SS = new SurroundSystem("SVS");
     this->count = 0;
 
     cv::Size origSize(1080, 1080);       //imread(image_list[0], -1).size();
@@ -105,7 +106,7 @@ private:
     this->SS.createStereopair(2, 0, newSize, cv::Vec3d(0, 0, 0), StereoMethod::SGBM);
     this->SS.createStereopair(3, 2, newSize, cv::Vec3d(0, 0, 0), StereoMethod::SGBM);
 
-    this->SS.prepareLUTs(); 
+    this->SS.prepareLUTs(false); 
     RCLCPP_INFO(get_logger(), "LUTs ready");
 
     return 0;
@@ -170,8 +171,8 @@ private:
           this->pubs.at(2*i).publish(lmsg);
           this->pubs.at(2*i+1).publish(rmsg);
 
-          this->infos.at(2*i).publish(linfo);
-          this->infos.at(2*i+1).publish(rinfo);
+          this->infos.at(2*i)->publish(linfo);
+          this->infos.at(2*i+1)->publish(rinfo);
       }
   }
 
