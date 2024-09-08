@@ -2,7 +2,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -19,7 +19,7 @@
 class SFyNode : public rclcpp::Node
 {
 public:
-  SurroundSystem SS("SVS"); 
+  std::shared_ptr<SurroundSystem> SS; 
   std::vector<image_transport::Publisher> pubs;
   std::vector<rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr> infos;
   std::map<int, std::vector<std::string>> sp_frames ;
@@ -72,7 +72,8 @@ private:
                    
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr quad_sub = create_subscription<sensor_msgs::msg::Image>(
          "/unity/quadrator", rclcpp::SensorDataQoS(), std::bind(&SFyNode::unityCallback, this, std::placeholders::_1));
-    // this->SS = new SurroundSystem("SVS");
+
+    this->SS = std::shared_ptr<SurroundSystem>(new SurroundSystem("SVS")); //make_shared<SurroundSystem>("SVS");
     this->count = 0;
 
     cv::Size origSize(1080, 1080);       //imread(image_list[0], -1).size();
@@ -97,16 +98,16 @@ private:
     SM3.setExtrinsics(cv::Vec3d(0, 0, 0), cv::Vec4d(0, 0, -0.9238795, 0.3826834));  //-135^o
     SM3.setCamParams(origSize);
 
-    this->SS.addNewCam(SM0);
-    this->SS.addNewCam(SM1);
-    this->SS.addNewCam(SM2);  
-    this->SS.addNewCam(SM3);
-    this->SS.createStereopair(0, 1, newSize, cv::Vec3d(0, 0, 0), StereoMethod::SGBM);
-    this->SS.createStereopair(1, 3, newSize, cv::Vec3d(0, 0, 0), StereoMethod::SGBM);
-    this->SS.createStereopair(2, 0, newSize, cv::Vec3d(0, 0, 0), StereoMethod::SGBM);
-    this->SS.createStereopair(3, 2, newSize, cv::Vec3d(0, 0, 0), StereoMethod::SGBM);
+    this->SS->addNewCam(SM0);
+    this->SS->addNewCam(SM1);
+    this->SS->addNewCam(SM2);  
+    this->SS->addNewCam(SM3);
+    this->SS->createStereopair(0, 1, newSize, cv::Vec3d(0, 0, 0), StereoMethod::NONE, " ");
+    this->SS->createStereopair(1, 3, newSize, cv::Vec3d(0, 0, 0), StereoMethod::NONE, " ");
+    this->SS->createStereopair(2, 0, newSize, cv::Vec3d(0, 0, 0), StereoMethod::NONE, " ");
+    this->SS->createStereopair(3, 2, newSize, cv::Vec3d(0, 0, 0), StereoMethod::NONE, " ");
 
-    this->SS.prepareLUTs(false); 
+    this->SS->prepareLUTs(false); 
     RCLCPP_INFO(get_logger(), "LUTs ready");
 
     return 0;
@@ -142,10 +143,10 @@ private:
       // cv::waitKey(1);
 
       std::vector<cv::Mat> remappedCombs = {cv::Mat(), cv::Mat(), cv::Mat(), cv::Mat()};
-      this->SS.getImage(0, SurroundSystem::RECTIFIED, front_left, front_right, remappedCombs[0]);
-      this->SS.getImage(1, SurroundSystem::RECTIFIED, front_right, back_right, remappedCombs[1]);
-      this->SS.getImage(2, SurroundSystem::RECTIFIED, back_left, front_left, remappedCombs[2]);
-      this->SS.getImage(3, SurroundSystem::RECTIFIED, back_right, back_left,  remappedCombs[3]);
+      this->SS->getImage(0, SurroundSystem::RECTIFIED, front_left, front_right, remappedCombs[0]);
+      this->SS->getImage(1, SurroundSystem::RECTIFIED, front_right, back_right, remappedCombs[1]);
+      this->SS->getImage(2, SurroundSystem::RECTIFIED, back_left, front_left, remappedCombs[2]);
+      this->SS->getImage(3, SurroundSystem::RECTIFIED, back_right, back_left,  remappedCombs[3]);
                     
 
       for (int i=0; i<remappedCombs.size(); i++)

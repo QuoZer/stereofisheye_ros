@@ -9,15 +9,21 @@ add_compile_options(-std=c++17)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED
-            tf2 
-            tf2_ros
-            std_msgs
-            sensor_msgs
-            cv_bridge
-            geometry_msgs
-            image_transport
-            OpenCV REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(geometry_msgs)
+            # tf2 
+            # tf2_ros
+
+# Print some message showing some of them
+message(STATUS "OpenCV library status:")
+message(STATUS "    version: ${OpenCV_VERSION}")
+message(STATUS "    libraries: ${OpenCV_LIBS}")
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")            
 
 set(  SVS_PATH
 /home/roser/repos/fisheye_stereo/fy_lib_source
@@ -44,11 +50,11 @@ set(DEWARPER_SRCS
 	${SVS_PATH}/src/models/Mei.cpp
 	${SVS_PATH}/src/models/KannalaB.cpp
 	${SVS_PATH}/src/models/DoubleSphere.cpp
-  	${SVS_PATH}/include/CamDesc.hpp
+  ${SVS_PATH}/include/CamDesc.hpp
 	${SVS_PATH}/include/CameraModel.hpp
 	${SVS_PATH}/include/FisheyeDewarper.hpp
 	${SVS_PATH}/include/models.hpp
-  	${SVS_PATH}/include/Intrinsics.hpp
+  ${SVS_PATH}/include/Intrinsics.hpp
 	${SVS_PATH}/include/SurroundSystem.hpp
 	${SVS_PATH}/include/StereoPair.hpp
 	${SVS_PATH}/include/Utils.hpp
@@ -60,18 +66,14 @@ target_link_libraries( svs ${OpenCV_LIBS})
 add_executable(${PROJECT_NAME}_node src/sfyNode.cpp)
 # add_executable(odo_repub_node src/odometry_repub.cpp)
 
-ament_target_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} rclcpp)
+target_link_libraries(${PROJECT_NAME}_node ${rclcpp_LIBRARIES} ${OpenCV_LIBS} svs)
 # ament_target_dependencies(odo_repub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-  svs
-)
-# target_link_libraries(odo_repub_node
+# target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
+#   ${OpenCV_LIBS}
+#   svs
 # )
-
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -83,5 +85,10 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(TARGETS
+  ${PROJECT_NAME}_node
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()
