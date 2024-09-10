@@ -43,12 +43,6 @@ public:
 
   }
 
-private:
-
-  std::string source_topic_, source_file_;
-  bool use_video_, use_quadrator_;
-  int source_width_, shot_width_, res_width_, source_fps_, count;
-  cv::Mat buf_image;  
 
   int init_system()
   {
@@ -113,6 +107,13 @@ private:
     return 0;
   }
 
+private:
+
+  std::string source_topic_, source_file_;
+  bool use_video_, use_quadrator_;
+  int source_width_, shot_width_, res_width_, source_fps_, count;
+  cv::Mat buf_image;  
+  
   void fillCamInfos(sensor_msgs::msg::CameraInfo &lcam_info, sensor_msgs::msg::CameraInfo &rcam_info)
   {
       lcam_info.width = 540;
@@ -204,6 +205,7 @@ int main(int argc, char **argv)
 {
    rclcpp::init(argc, argv);
    auto node = std::make_shared<SFyNode>();
+   node.get()->init_system();
    rclcpp::spin(node);
    rclcpp::shutdown();
    return 0;

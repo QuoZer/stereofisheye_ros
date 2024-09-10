@@ -64,9 +64,11 @@ add_library(svs SHARED ${DEWARPER_SRCS})
 target_link_libraries( svs ${OpenCV_LIBS})  
 
 add_executable(${PROJECT_NAME}_node src/sfyNode.cpp)
+ament_target_dependencies(${PROJECT_NAME}_node rclcpp image_transport std_msgs sensor_msgs cv_bridge OpenCV)
 # add_executable(odo_repub_node src/odometry_repub.cpp)
 
-target_link_libraries(${PROJECT_NAME}_node ${rclcpp_LIBRARIES} ${OpenCV_LIBS} svs)
+target_link_libraries(${PROJECT_NAME}_node svs )
+# ${OpenCV_LIBS} 
 # ament_target_dependencies(odo_repub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -85,6 +87,8 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_dependencies(cv_bridge image_transport rclcpp sensor_msgs std_msgs)
 
 install(TARGETS
   ${PROJECT_NAME}_node
